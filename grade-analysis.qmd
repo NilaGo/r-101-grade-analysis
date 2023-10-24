@@ -37,14 +37,18 @@ NA_final<-grades|>filter(is.na(Exam))|>nrow()
 ```{r}
 exam<-grades|>filter(Exam!=is.na(Exam))
 ggplot(exam,aes(x=Exam))+
-  geom_histogram(bins=30)
+  geom_histogram(bins=30)+
+  geom_rug()
 ```
 ### Question 5 
 ```{r}
-knitr::kable(grades|>group_by(Group)|>summarise("Number of student"=n()))
+knitr::kable(grades|>group_by(Group)|>summarise("student count"=n()))
 ```
-
+## Question 6
 ```{r}
+nb_students<-grades|>group_by(Group)|>summarise("student count"=n())
+ggplot(nb_students,aes(x=`student count`,fill=Group))+
+geom_bar()
 
 ```
 
