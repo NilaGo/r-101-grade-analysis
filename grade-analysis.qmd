@@ -39,4 +39,12 @@ exam<-grades|>filter(Exam!=is.na(Exam))
 ggplot(exam,aes(x=Exam))+
   geom_histogram(bins=30)
 ```
+### Question 5 
+```{r}
+knitr::kable(grades|>group_by(Group)|>summarise("Number of student"=n()))
+```
+
+```{r}
+
+```
 
