@@ -26,4 +26,17 @@ grades<-vroom(here("grades.csv"))
 ```{r}
 knitr::kable(grades|>summarise(minimum=min(Exam,na.rm=TRUE),maximum=max(Exam,na.rm=TRUE),median=median(Exam,na.rm=TRUE),mean=mean(Exam,na.rm=TRUE)))
 ```
+## Question 3
+```{r}
+NA_final<-grades|>filter(is.na(Exam))|>nrow()
+```
+
+`r NA_final` students did not take the final exam.
+
+## Question 4
+```{r}
+exam<-grades|>filter(Exam!=is.na(Exam))
+ggplot(exam,aes(x=Exam))+
+  geom_histogram(bins=30)
+```
 
