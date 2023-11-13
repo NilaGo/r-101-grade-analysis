@@ -13,6 +13,7 @@ library(tidyr)
 library(dplyr)
 library(here)
 library(vroom)
+library(stringr)
 here::i_am("r-101-grade-analysis.Rproj")
 ```
 
@@ -50,5 +51,82 @@ nb_students<-grades|>group_by(Group)|>summarise("student count"=n())
 ggplot(nb_students,aes(x=`student count`,fill=Group))+
 geom_bar()
 
+```
+
+## Question 7
+```{r}
+exam|> group_by(Group)|>
+  ggplot(aes(x=Exam,y=Group,fill=Group))+
+  geom_boxplot()
+
+  
+```
+
+```{r}
+exam|> group_by(Group)|>
+  ggplot(aes(x=Exam,y=Group,fill=Group))+
+  geom_violin()
+
+```
+
+```{r}
+
+N_A<-grades|>group_by(Group)|>summarise("count"=sum(is.na(Exam)))
+```
+```{r}
+ggplot(N_A,aes(y=Group,x=count,fill=Group))+
+  geom_col()
+```
+## Question 10
+```{r}
+grades_long<-grades|>pivot_longer(!c(Id,Group) )
+```
+#Question 11
+```{r}
+grades_long|>group_by(Id)|>summarise("missing grades"=sum(is.na(value)))
+```
+```{r}
+grades_long|>group_by(Id)|>summarise("missing grades"=sum(is.na(value)))|>
+  ggplot(aes(x=`missing grades`))+
+  geom_bar()+coord_flip()
+  
+```
+```{r}
+grades_long|>group_by(Group)|>filter(name=="Exam")|>
+  summarise(Na=sum(is.na(value)))
+  
+```
+```{r}
+on_grades_long<-grades_long|>group_by(Id)|>filter(str_starts(name,"Online"))|>
+  summarise(Missing_online=sum(is.na(value)))
+```
+```{r}
+grades_j<-grades|>
+  right_join(on_grades_long,by="Id")|>filter(Exam!=is.na(Exam))
+
+  
+```
+```{r}
+ggplot(grades_j,aes(x=Exam,y=Missing_online))+
+  geom_point(alpha=0.5)
+
+```
+
+```{r}
+MCQ<-grades_long|>group_by(Id)|>filter(str_starts(name,"MCQ"))|>
+  summarise(Missing=sum(is.na(value))>0)
+```
+```{r}
+P_missed<-grades_long|>group_by(Group,Id)|>filter(str_starts(name,"MCQ"))|>
+  summarise(Missing=sum(is.na(value))>0)|>
+  group_by(Group)|>
+  summarise(P_missed = sum(Missing) / n() * 100)
+
+```
+```{r}
+avg<-grades_long|>filter(name=="Exam",value!=is.na(value))|>group_by(Group)|>summarise(avg=mean(value))
+dta<-inner_join(avg,P_missed,by="Group")
+ggplot(dta,aes(x=avg,y=P_missed))+
+  geom_point()
 ```
 
