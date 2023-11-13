@@ -2,6 +2,7 @@
 title: "grade-analysis-lab"
 author: Nila Gobiraj
 format: html
+echo: false
 ---
 Github repository link: https://github.com/NilaGo/r-101-grade-analysis.git
 
@@ -39,7 +40,8 @@ NA_final<-grades|>filter(is.na(Exam))|>nrow()
 exam<-grades|>filter(Exam!=is.na(Exam))
 ggplot(exam,aes(x=Exam))+
   geom_histogram(bins=30)+
-  geom_rug()
+  geom_rug()+
+  labs(title="Distribution of grades at the Exam",x="grades",y ="number of students")
 ```
 ### Question 5 
 ```{r}
@@ -49,7 +51,8 @@ knitr::kable(grades|>group_by(Group)|>summarise("student count"=n()))
 ```{r}
 nb_students<-grades|>group_by(Group)|>summarise("student count"=n())
 ggplot(nb_students,aes(x=`student count`,fill=Group))+
-geom_bar()
+geom_bar()+
+labs(title="Number of students in each groups",x="number of students",y="number of groups")
 
 ```
 
@@ -57,7 +60,8 @@ geom_bar()
 ```{r}
 exam|> group_by(Group)|>
   ggplot(aes(x=Exam,y=Group,fill=Group))+
-  geom_boxplot()
+  geom_boxplot()+
+  labs(title="Distribution of the grades at the Exam conditioned by the group",x="grades",y="groups")
 
   
 ```
@@ -65,41 +69,54 @@ exam|> group_by(Group)|>
 ```{r}
 exam|> group_by(Group)|>
   ggplot(aes(x=Exam,y=Group,fill=Group))+
-  geom_violin()
+  geom_violin()+
+    labs(title="Distribution of the grades at the Exam conditioned by the group",x="grades",y="groups")
 
 ```
-
+## Question 8
 ```{r}
 
-N_A<-grades|>group_by(Group)|>summarise("count"=sum(is.na(Exam)))
+N_A<-grades|>group_by(Group)|>summarise("number of students who missed the exam"=sum(is.na(Exam)))
+N_A
 ```
+## Question 9
 ```{r}
-ggplot(N_A,aes(y=Group,x=count,fill=Group))+
-  geom_col()
+ggplot(N_A,aes(y=Group,x=`number of students who missed the exam`,fill=Group))+
+  geom_col()+
+  labs(title="Number of students who missed the Exam in each Group",x="number of students")
 ```
 ## Question 10
 ```{r}
 grades_long<-grades|>pivot_longer(!c(Id,Group) )
 ```
-#Question 11
+
+## Question 11
 ```{r}
 grades_long|>group_by(Id)|>summarise("missing grades"=sum(is.na(value)))
 ```
+## Question 12
 ```{r}
 grades_long|>group_by(Id)|>summarise("missing grades"=sum(is.na(value)))|>
   ggplot(aes(x=`missing grades`))+
-  geom_bar()+coord_flip()
+  geom_bar()+coord_flip()+
+  labs(title="Distribution of the number of missing grades per student",x="number of missing grades",y="number of students")
   
 ```
+
+## Question 13
 ```{r}
 grades_long|>group_by(Group)|>filter(name=="Exam")|>
-  summarise(Na=sum(is.na(value)))
+  summarise("number of students who missed the exam"=sum(is.na(value)))
   
 ```
+## Question 14
 ```{r}
 on_grades_long<-grades_long|>group_by(Id)|>filter(str_starts(name,"Online"))|>
   summarise(Missing_online=sum(is.na(value)))
+on_grades_long
 ```
+
+## Question 15
 ```{r}
 grades_j<-grades|>
   right_join(on_grades_long,by="Id")|>filter(Exam!=is.na(Exam))
@@ -108,25 +125,30 @@ grades_j<-grades|>
 ```
 ```{r}
 ggplot(grades_j,aes(x=Exam,y=Missing_online))+
-  geom_point(alpha=0.5)
+  geom_point(alpha=0.5)+
+  labs(title = " distribution of the grades at the Exam conditioned by the number of missing grades for the online tests", y= "missed online tests" , x="exam grade")
 
 ```
-
+## Question 16
 ```{r}
-MCQ<-grades_long|>group_by(Id)|>filter(str_starts(name,"MCQ"))|>
-  summarise(Missing=sum(is.na(value))>0)
+knitr::kable(MCQ<-grades_long|>group_by(Id)|>filter(str_starts(name,"MCQ"))|>
+  summarise(Missing=sum(is.na(value))>0))
 ```
+## Question 17
 ```{r}
-P_missed<-grades_long|>group_by(Group,Id)|>filter(str_starts(name,"MCQ"))|>
+#|message: false 
+knitr::kable(P_missed<-grades_long|>group_by(Group,Id)|>filter(str_starts(name,"MCQ"))|>
   summarise(Missing=sum(is.na(value))>0)|>
   group_by(Group)|>
-  summarise(P_missed = sum(Missing) / n() * 100)
+  summarise(P_missed = sum(Missing) / n() * 100))
 
 ```
+## Question 18
 ```{r}
 avg<-grades_long|>filter(name=="Exam",value!=is.na(value))|>group_by(Group)|>summarise(avg=mean(value))
 dta<-inner_join(avg,P_missed,by="Group")
 ggplot(dta,aes(x=avg,y=P_missed))+
-  geom_point()
+  geom_point()+
+  labs(title="average grade at the Exam per group as a function of the percentage of missed MCQ_xx grade",y="percentage of missed MCQ_xx grade",x="grade at Exam")
 ```
 
